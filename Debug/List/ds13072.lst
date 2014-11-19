@@ -1,0 +1,200 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V6.10.1.50424 for Atmel AVR        17/Nov/2014  11:13:20 #
+# Copyright 1996-2011 IAR Systems AB.                                         #
+#                                                                             #
+#    Source file  =  H:\WORKSPACE\NixieClock2\ds13072.c                       #
+#    Command line =  H:\WORKSPACE\NixieClock2\ds13072.c --cpu=m16 -ms -o      #
+#                    H:\WORKSPACE\NixieClock2\Debug\Obj\ -lC                  #
+#                    H:\WORKSPACE\NixieClock2\Debug\List\                     #
+#                    --initializers_in_flash --no_cse --no_inline             #
+#                    --no_code_motion --no_cross_call --no_clustering         #
+#                    --no_tbaa --debug -DENABLE_BIT_DEFINITIONS -e            #
+#                    --eeprom_size 512 --clib -Ol                             #
+#    List file    =  H:\WORKSPACE\NixieClock2\Debug\List\ds13072.lst          #
+#    Object file  =  H:\WORKSPACE\NixieClock2\Debug\Obj\ds13072.r90           #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+H:\WORKSPACE\NixieClock2\ds13072.c
+      1          //#include "i2c2.h"
+      2          #include "ds13072.h"
+      3          #include "all.h"
+      4          //===========================================================
+      5          //Set DS1307
+      6          /*#define DS1307_ADDR_W       208     //адрес микросхемы часов
+      7          #define DS1307_ADDR_R       209
+      8          #define DS1307_CONTROL      0x07    //регистр управления
+      9          #define CH                  0x07
+     10          */
+     11          
+     12          
+     13          
+     14          #define DS1307_ADR          104
+     15          #define DS1307_SEC_ADR      0x00
+     16          #define DS1307_MIN_ADR      0x01
+     17          #define DS1307_HOUR_ADR     0x02
+     18          #define DS1307_DATE_ADR     0x04
+     19          #define DS1307_CTRL_ADR     0x07
+     20          
+     21          
+     22          #define F_CPU   20000000UL
+     23          #define F_I2C   50000UL
+     24          #define TWBR_VALUE    (((F_CPU)/(F_I2C)-16)/2)
+     25          
+     26          #if ((TWBR_VALUE > 255) || (TWBR_VALUE == 0))
+     27             #error "TWBR value is not correct"
+     28          #endif
+     29          
+     30          #if 0
+     31          
+     32          
+     33          
+     34          //===========================================================
+     35          //DS1307
+     36          
+     37          unsigned char DEC2BCD(unsigned char num)
+     38          { 
+     39              //return ((num/10 * 16) + (num % 10));
+     40              //return (((DEC2BCD_HI(num)) << 4) + (DEC2BCD_LO(num)));
+     41              return ((num/10) << 4) | (num % 10);
+     42          }
+     43          
+     44          unsigned char BCD2DEC(unsigned char num)
+     45          { 
+     46              //return ((num/16 * 10) + (num % 16));
+     47              return ((((num >> 4) & 0x0F)*10) + (num & 0x0F));
+     48          }
+     49          
+     50          
+     51              
+     52          
+     53          unsigned char dds1307_Init(void)
+     54          {
+     55           /* unsigned char tmp;
+     56            
+     57            i2c_Init();
+     58            i2c_Start();
+     59            i2c_Send(DS1307_ADDR_W);
+     60            i2c_Send(DS1307_CONTROL);
+     61            i2c_Send((1<<4));
+     62            i2c_Stop();
+     63            //---------------------------------
+     64            i2c_Start();
+     65            i2c_Send(DS1307_ADDR_W);
+     66            
+     67            i2c_Send(0);
+     68            i2c_Stop();
+     69            //--------------------------------
+     70            i2c_Start();
+     71            i2c_Send(DS1307_ADDR_R);
+     72            tmp=i2c_Read(0);
+     73            i2c_Stop();
+     74            
+     75            if(tmp&0x80)
+     76              return 0;
+     77            else
+     78              return 1;*/
+     79            
+     80              //IIC Init
+     81              TWBR = TWBR_VALUE;
+     82              TWSR = 0;
+     83              
+     84              //Enable SqWavOut
+     85              IICWrite(DS1307_ADR, DS1307_CTRL_ADR, 1<<4);    
+     86              
+     87              return 0;
+     88          }
+     89          
+     90          void rdtc_get_time(unsigned char *hour, unsigned char *min, unsigned char *sec)
+     91          {
+     92          
+     93            /*i2c_Start();
+     94            i2c_Send(DS1307_ADDR_W);
+     95            i2c_Send(0);
+     96            i2c_Stop();
+     97            
+     98            i2c_Start();
+     99            i2c_Send(DS1307_ADDR_R);
+    100            *sec=ds1307_bcd2dec(i2c_Read(1));
+    101            *min=ds1307_bcd2dec(i2c_Read(1));
+    102            *hour=ds1307_bcd2dec(i2c_Read(0)); 
+    103            i2c_Stop();*/
+    104              
+    105              IICWriteInitAdr(DS1307_ADR, DS1307_SEC_ADR);
+    106              *sec =  BCD2DEC( IICRead(DS1307_ADR) );
+    107              *min =  BCD2DEC( IICRead(DS1307_ADR) );
+    108              *hour = BCD2DEC( IICRead(DS1307_ADR) );
+    109            
+    110            
+    111          }
+    112          
+    113          //------------------------------------------------------------------------------
+    114          void rtc_gdet_date(unsigned char *date,unsigned char *month,unsigned char *year)
+    115          {    
+    116              IICWriteInitAdr(DS1307_ADR, DS1307_DATE_ADR);
+    117              *date = BCD2DEC( IICRead(DS1307_ADR) );
+    118              *month= BCD2DEC( IICRead(DS1307_ADR) );
+    119              *year = BCD2DEC( IICRead(DS1307_ADR) );       
+    120          }
+    121          //------------------------------------------------------------------------------
+    122          
+    123          unsigned char ds1307_GetDay(void)
+    124          {
+    125          unsigned char RetVal;
+    126            i2c_Start();
+    127            i2c_Send(DS1307_ADDR_W);
+    128            
+    129            i2c_Send(3);
+    130            i2c_Stop();
+    131            
+    132            i2c_Start();
+    133            i2c_Send(DS1307_ADDR_R);
+    134            RetVal=i2c_Read(0);  
+    135            i2c_Stop();
+    136            return RetVal;
+    137          }
+    138          
+    139          
+    140          
+    141          
+    142          
+    143          
+    144          void rtc_sdet_time(unsigned char hour,unsigned char min,unsigned char sec)
+    145          {
+    146            /*i2c_Start();
+    147            i2c_Send(DS1307_ADDR_W);
+    148            i2c_Send(0);
+    149          
+    150            i2c_Send(ds1307_dec2bcd(sec));
+    151            i2c_Send(ds1307_dec2bcd(min));
+    152            i2c_Send(ds1307_dec2bcd(hour));
+    153            i2c_Stop();*/
+    154          }
+    155          //------------------------------------------------------------------------------
+    156          void rtc_sdet_date(unsigned char date,unsigned char month,unsigned char year)
+    157          {/*
+    158            i2c_Start();
+    159            i2c_Send(DS1307_ADDR_W);
+    160            i2c_Send(3);
+    161          
+    162            i2c_Send(ds1307_dec2bcd(5)); //day of week
+    163            i2c_Send(ds1307_dec2bcd(date));
+    164            i2c_Send(ds1307_dec2bcd(month));
+    165            i2c_Send(ds1307_dec2bcd(year));
+    166            
+    167            i2c_Stop();*/
+    168          }
+    169          //------------------------------------------------------------------------------
+    170          
+    171          
+    172          #endif
+
+
+ 
+ 
+ 0 bytes of memory
+
+Errors: none
+Warnings: none

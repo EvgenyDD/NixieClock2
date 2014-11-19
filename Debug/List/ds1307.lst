@@ -1,0 +1,553 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V6.10.1.50424 for Atmel AVR        19/Nov/2014  09:23:19 #
+# Copyright 1996-2011 IAR Systems AB.                                         #
+#                                                                             #
+#    Source file  =  H:\WORKSPACE\NixieClock2\ds1307.c                        #
+#    Command line =  H:\WORKSPACE\NixieClock2\ds1307.c --cpu=m16 -ms -o       #
+#                    H:\WORKSPACE\NixieClock2\Debug\Obj\ -lC                  #
+#                    H:\WORKSPACE\NixieClock2\Debug\List\                     #
+#                    --initializers_in_flash --no_cse --no_inline             #
+#                    --no_code_motion --no_cross_call --no_clustering         #
+#                    --no_tbaa --debug -DENABLE_BIT_DEFINITIONS -e            #
+#                    --eeprom_size 512 --clib -Ol                             #
+#    List file    =  H:\WORKSPACE\NixieClock2\Debug\List\ds1307.lst           #
+#    Object file  =  H:\WORKSPACE\NixieClock2\Debug\Obj\ds1307.r90            #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+H:\WORKSPACE\NixieClock2\ds1307.c
+      1          /* Includes ------------------------------------------------------------------*/
+      2          #include "all.h"
+
+   \                                 In  segment ABSOLUTE, at 0x56
+   \   union <unnamed> volatile __io _A_TWCR
+   \                     _A_TWCR:
+   \   00000000                      DS8 1
+
+   \                                 In  segment ABSOLUTE, at 0x23
+   \   union <unnamed> volatile __io _A_TWDR
+   \                     _A_TWDR:
+   \   00000000                      DS8 1
+
+   \                                 In  segment ABSOLUTE, at 0x21
+   \   union <unnamed> volatile __io _A_TWSR
+   \                     _A_TWSR:
+   \   00000000                      DS8 1
+
+   \                                 In  segment ABSOLUTE, at 0x20
+   \   union <unnamed> volatile __io _A_TWBR
+   \                     _A_TWBR:
+   \   00000000                      DS8 1
+      3          #include "ds1307.h"
+      4          
+      5          
+      6          /* Private typedef -----------------------------------------------------------*/
+      7          /* Private define ------------------------------------------------------------*/
+      8          /* Private macro -------------------------------------------------------------*/
+      9          /* Private variables ---------------------------------------------------------*/
+     10          /* Extern variables ----------------------------------------------------------*/
+     11          /* Private function prototypes -----------------------------------------------*/
+     12          /* Private functions ---------------------------------------------------------*/
+     13          /*******************************************************************************
+     14          * Function Name  : DEC2BCD
+     15          * Input		 : Number in DEC
+     16          * Return         : Number in BCD
+     17          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     18          unsigned char DEC2BCD(unsigned char num)
+   \                     DEC2BCD:
+     19          { 
+   \   00000000   939A               ST      -Y, R25
+   \   00000002   938A               ST      -Y, R24
+   \   00000004   2F90               MOV     R25, R16
+     20              return ((num/10) << 4) | (num % 10);
+   \   00000006   E04A               LDI     R20, 10
+   \   00000008   2F09               MOV     R16, R25
+   \   0000000A   ........           CALL    ?UC_DIVMOD_L01
+   \   0000000E   2F80               MOV     R24, R16
+   \   00000010   9582               SWAP    R24
+   \   00000012   7F80               ANDI    R24, 0xF0
+   \   00000014   E04A               LDI     R20, 10
+   \   00000016   2F09               MOV     R16, R25
+   \   00000018   ........           CALL    ?UC_DIVMOD_L01
+   \   0000001C   2B84               OR      R24, R20
+   \   0000001E   2F08               MOV     R16, R24
+   \   00000020   9189               LD      R24, Y+
+   \   00000022   9199               LD      R25, Y+
+   \   00000024   9508               RET
+     21          }
+     22          
+     23          
+     24          /*******************************************************************************
+     25          * Function Name  : BCD2DEC
+     26          * Input		 : Number in BCD
+     27          * Return         : Number in DEC
+     28          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     29          unsigned char BCD2DEC(unsigned char num)
+   \                     BCD2DEC:
+     30          { 
+     31              return ((((num >> 4) & 0x0F)*10) + (num & 0x0F));
+   \   00000000   2F20               MOV     R18, R16
+   \   00000002   9522               SWAP    R18
+   \   00000004   702F               ANDI    R18, 0x0F
+   \   00000006   E01A               LDI     R17, 10
+   \   00000008   9F21               MUL     R18, R17
+   \   0000000A   700F               ANDI    R16, 0x0F
+   \   0000000C   0E00               ADD     R0, R16
+   \   0000000E   2D00               MOV     R16, R0
+   \   00000010   9508               RET
+     32          }
+     33          
+     34          
+     35          /*******************************************************************************
+     36          * Function Name  : IICWrite
+     37          * Description    : Write data to IIC device
+     38          * Input		 : Device address, Register address ,data
+     39          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     40          void IICWrite(unsigned char deviceAdr, unsigned char registerAdr, unsigned char data)
+   \                     IICWrite:
+     41          {
+     42          //start
+     43              TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
+   \   00000000   EA34               LDI     R19, 164
+   \   00000002   BF36               OUT     0x36, R19
+     44              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWrite_0:
+   \   00000004   B736               IN      R19, 0x36
+   \   00000006   2F43               MOV     R20, R19
+   \   00000008   FF47               SBRS    R20, 7
+   \   0000000A   CFFC               RJMP    ??IICWrite_0
+     45          //ADR_Wr
+     46              TWDR = (deviceAdr<<1)|0;
+   \   0000000C   0F00               LSL     R16
+   \   0000000E   B903               OUT     0x03, R16
+     47              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   00000010   E804               LDI     R16, 132
+   \   00000012   BF06               OUT     0x36, R16
+     48              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWrite_1:
+   \   00000014   B706               IN      R16, 0x36
+   \   00000016   2F30               MOV     R19, R16
+   \   00000018   FF37               SBRS    R19, 7
+   \   0000001A   CFFC               RJMP    ??IICWrite_1
+     49          //register adress
+     50              TWDR = registerAdr;
+   \   0000001C   B913               OUT     0x03, R17
+     51              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   0000001E   E804               LDI     R16, 132
+   \   00000020   BF06               OUT     0x36, R16
+     52              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWrite_2:
+   \   00000022   B706               IN      R16, 0x36
+   \   00000024   2F10               MOV     R17, R16
+   \   00000026   FF17               SBRS    R17, 7
+   \   00000028   CFFC               RJMP    ??IICWrite_2
+     53          //data
+     54              TWDR = data;
+   \   0000002A   B923               OUT     0x03, R18
+     55              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   0000002C   E804               LDI     R16, 132
+   \   0000002E   BF06               OUT     0x36, R16
+     56              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWrite_3:
+   \   00000030   B706               IN      R16, 0x36
+   \   00000032   2F10               MOV     R17, R16
+   \   00000034   FF17               SBRS    R17, 7
+   \   00000036   CFFC               RJMP    ??IICWrite_3
+     57          //stop
+     58              TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);  
+   \   00000038   E904               LDI     R16, 148
+   \   0000003A   BF06               OUT     0x36, R16
+     59          }
+   \   0000003C   9508               RET
+   \   0000003E                      REQUIRE _A_TWCR
+   \   0000003E                      REQUIRE _A_TWDR
+     60          
+     61          
+     62          /*******************************************************************************
+     63          * Function Name  : IICWriteInitAdr
+     64          * Description    : Write init address to IIC device
+     65          * Input		 : Device address, Register address
+     66          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     67          void IICWriteInitAdr(unsigned char deviceAdr, unsigned char adr)
+   \                     IICWriteInitAdr:
+     68          {
+     69          //start
+     70              TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
+   \   00000000   EA24               LDI     R18, 164
+   \   00000002   BF26               OUT     0x36, R18
+     71              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWriteInitAdr_0:
+   \   00000004   B726               IN      R18, 0x36
+   \   00000006   2F32               MOV     R19, R18
+   \   00000008   FF37               SBRS    R19, 7
+   \   0000000A   CFFC               RJMP    ??IICWriteInitAdr_0
+     72          //ADR_Wr
+     73              TWDR = (deviceAdr<<1)|0;
+   \   0000000C   0F00               LSL     R16
+   \   0000000E   B903               OUT     0x03, R16
+     74              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   00000010   E804               LDI     R16, 132
+   \   00000012   BF06               OUT     0x36, R16
+     75              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWriteInitAdr_1:
+   \   00000014   B706               IN      R16, 0x36
+   \   00000016   2F20               MOV     R18, R16
+   \   00000018   FF27               SBRS    R18, 7
+   \   0000001A   CFFC               RJMP    ??IICWriteInitAdr_1
+     76          //register adress
+     77              TWDR = adr;
+   \   0000001C   B913               OUT     0x03, R17
+     78              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   0000001E   E804               LDI     R16, 132
+   \   00000020   BF06               OUT     0x36, R16
+     79              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICWriteInitAdr_2:
+   \   00000022   B706               IN      R16, 0x36
+   \   00000024   2F10               MOV     R17, R16
+   \   00000026   FF17               SBRS    R17, 7
+   \   00000028   CFFC               RJMP    ??IICWriteInitAdr_2
+     80          //stop
+     81              TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);  
+   \   0000002A   E904               LDI     R16, 148
+   \   0000002C   BF06               OUT     0x36, R16
+     82          }
+   \   0000002E   9508               RET
+   \   00000030                      REQUIRE _A_TWCR
+   \   00000030                      REQUIRE _A_TWDR
+     83          
+     84          
+     85          /*******************************************************************************
+     86          * Function Name  : IICRead
+     87          * Description    : Read data from IIC device - after init address was written
+     88          * Input		 : Device address
+     89          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     90          unsigned char IICRead(unsigned char deviceAdr)
+   \                     IICRead:
+     91          {
+     92              unsigned char data;
+     93              
+     94          //start
+     95              TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
+   \   00000000   EA14               LDI     R17, 164
+   \   00000002   BF16               OUT     0x36, R17
+     96              while(!(TWCR & (1<<TWINT)));  
+   \                     ??IICRead_0:
+   \   00000004   B716               IN      R17, 0x36
+   \   00000006   2F21               MOV     R18, R17
+   \   00000008   FF27               SBRS    R18, 7
+   \   0000000A   CFFC               RJMP    ??IICRead_0
+     97          //ADR_Rd
+     98              TWDR = (deviceAdr<<1)|1;
+   \   0000000C   0F00               LSL     R16
+   \   0000000E   6001               ORI     R16, 0x01
+   \   00000010   B903               OUT     0x03, R16
+     99              TWCR = (1<<TWINT)|(1<<TWEN); 
+   \   00000012   E804               LDI     R16, 132
+   \   00000014   BF06               OUT     0x36, R16
+    100              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICRead_1:
+   \   00000016   B706               IN      R16, 0x36
+   \   00000018   2F10               MOV     R17, R16
+   \   0000001A   FF17               SBRS    R17, 7
+   \   0000001C   CFFC               RJMP    ??IICRead_1
+    101          //get data
+    102              TWCR = (1<<TWINT)|(1<<TWEN);
+   \   0000001E   E804               LDI     R16, 132
+   \   00000020   BF06               OUT     0x36, R16
+    103              while(!(TWCR & (1<<TWINT)));
+   \                     ??IICRead_2:
+   \   00000022   B706               IN      R16, 0x36
+   \   00000024   2F10               MOV     R17, R16
+   \   00000026   FF17               SBRS    R17, 7
+   \   00000028   CFFC               RJMP    ??IICRead_2
+    104              data = TWDR;
+   \   0000002A   B103               IN      R16, 0x03
+    105          //stop
+    106              TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN); 
+   \   0000002C   E914               LDI     R17, 148
+   \   0000002E   BF16               OUT     0x36, R17
+    107              
+    108              return data;
+   \   00000030   9508               RET
+   \   00000032                      REQUIRE _A_TWCR
+   \   00000032                      REQUIRE _A_TWDR
+    109          }
+    110          
+    111          
+    112          /*******************************************************************************
+    113          * Function Name  : DS1307Init
+    114          * Description    : Initialize IIC bus and enable DS1307 1Hz SquareWaveOutput
+    115          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    116          void DS1307Init()
+   \                     DS1307Init:
+    117          {  
+    118          //IIC Init
+    119              TWBR = TWBR_VALUE;
+   \   00000000   EC00               LDI     R16, 192
+   \   00000002   B900               OUT     0x00, R16
+    120              TWSR = 0;
+   \   00000004   E000               LDI     R16, 0
+   \   00000006   B901               OUT     0x01, R16
+    121              
+    122          //Enable 1Hz SquareWaveOutput
+    123              IICWrite(DS1307_ADR, DS1307_CTRL_ADR, 1<<4);    
+   \   00000008   E120               LDI     R18, 16
+   \   0000000A   E017               LDI     R17, 7
+   \   0000000C   E608               LDI     R16, 104
+   \   0000000E   ....               RCALL   IICWrite
+    124          }
+   \   00000010   9508               RET
+   \   00000012                      REQUIRE _A_TWBR
+   \   00000012                      REQUIRE _A_TWSR
+    125          
+    126          
+    127          /*******************************************************************************
+    128          * Function Name  : DS1307GetTime
+    129          * Description    : Get time from DS1307
+    130          * Input		 : pointers to hour, minute, second
+    131          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    132          void DS1307GetTime(unsigned char *hour, unsigned char *min, unsigned char *sec)
+   \                     DS1307GetTime:
+    133          {    
+   \   00000000   ........           CALL    ?PROLOGUE6_L09
+   \   00000004                      REQUIRE ?Register_R4_is_cg_reg
+   \   00000004                      REQUIRE ?Register_R5_is_cg_reg
+   \   00000004   0128               MOVW    R5:R4, R17:R16
+   \   00000006   01D9               MOVW    R27:R26, R19:R18
+   \   00000008   01CA               MOVW    R25:R24, R21:R20
+    134              IICWriteInitAdr(DS1307_ADR, DS1307_SEC_ADR);
+   \   0000000A   E010               LDI     R17, 0
+   \   0000000C   E608               LDI     R16, 104
+   \   0000000E   ....               RCALL   IICWriteInitAdr
+    135              *sec =  BCD2DEC( IICRead(DS1307_ADR) );
+   \   00000010   E608               LDI     R16, 104
+   \   00000012   ....               RCALL   IICRead
+   \   00000014   ....               RCALL   BCD2DEC
+   \   00000016   01FC               MOVW    R31:R30, R25:R24
+   \   00000018   8300               ST      Z, R16
+    136              *min =  BCD2DEC( IICRead(DS1307_ADR) );
+   \   0000001A   E608               LDI     R16, 104
+   \   0000001C   ....               RCALL   IICRead
+   \   0000001E   ....               RCALL   BCD2DEC
+   \   00000020   930C               ST      X, R16
+    137              *hour = BCD2DEC( IICRead(DS1307_ADR) );
+   \   00000022   E608               LDI     R16, 104
+   \   00000024   ....               RCALL   IICRead
+   \   00000026   ....               RCALL   BCD2DEC
+   \   00000028   01F2               MOVW    R31:R30, R5:R4
+   \   0000002A   8300               ST      Z, R16
+    138          }
+   \   0000002C   E0E6               LDI     R30, 6
+   \   0000002E   ........           JMP     ?EPILOGUE_B6_L09
+    139          
+    140          
+    141          /*******************************************************************************
+    142          * Function Name  : DS1307GetDate
+    143          * Description    : Get date from DS1307
+    144          * Input		 : pointers to date, month, year
+    145          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    146          void DS1307GetDate(unsigned char *date, unsigned char *month, unsigned char *year)
+   \                     DS1307GetDate:
+    147          {    
+   \   00000000   ........           CALL    ?PROLOGUE6_L09
+   \   00000004                      REQUIRE ?Register_R4_is_cg_reg
+   \   00000004                      REQUIRE ?Register_R5_is_cg_reg
+   \   00000004   0128               MOVW    R5:R4, R17:R16
+   \   00000006   01D9               MOVW    R27:R26, R19:R18
+   \   00000008   01CA               MOVW    R25:R24, R21:R20
+    148              IICWriteInitAdr(DS1307_ADR, DS1307_DATE_ADR);
+   \   0000000A   E014               LDI     R17, 4
+   \   0000000C   E608               LDI     R16, 104
+   \   0000000E   ....               RCALL   IICWriteInitAdr
+    149              *date = BCD2DEC( IICRead(DS1307_ADR) );
+   \   00000010   E608               LDI     R16, 104
+   \   00000012   ....               RCALL   IICRead
+   \   00000014   ....               RCALL   BCD2DEC
+   \   00000016   01F2               MOVW    R31:R30, R5:R4
+   \   00000018   8300               ST      Z, R16
+    150              *month= BCD2DEC( IICRead(DS1307_ADR) );
+   \   0000001A   E608               LDI     R16, 104
+   \   0000001C   ....               RCALL   IICRead
+   \   0000001E   ....               RCALL   BCD2DEC
+   \   00000020   01FD               MOVW    R31:R30, R27:R26
+   \   00000022   8300               ST      Z, R16
+    151              *year = BCD2DEC( IICRead(DS1307_ADR) );       
+   \   00000024   E608               LDI     R16, 104
+   \   00000026   ....               RCALL   IICRead
+   \   00000028   ....               RCALL   BCD2DEC
+   \   0000002A   01FC               MOVW    R31:R30, R25:R24
+   \   0000002C   8300               ST      Z, R16
+    152          }
+   \   0000002E   E0E6               LDI     R30, 6
+   \   00000030   ........           JMP     ?EPILOGUE_B6_L09
+    153          
+    154          
+    155          /*******************************************************************************
+    156          * Function Name  : Ds1307SetTime
+    157          * Description    : Write time to DS1307
+    158          * Input		 : Hour, minute, second
+    159          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    160          void DS1307SetTime(unsigned char hour, unsigned char min, unsigned char sec)
+   \                     DS1307SetTime:
+    161          {
+   \   00000000   939A               ST      -Y, R25
+   \   00000002   938A               ST      -Y, R24
+   \   00000004   2F80               MOV     R24, R16
+   \   00000006   2F91               MOV     R25, R17
+   \   00000008   2F02               MOV     R16, R18
+    162              IICWrite(DS1307_ADR, DS1307_SEC_ADR, DEC2BCD(sec));
+   \   0000000A   ....               RCALL   DEC2BCD
+   \   0000000C   2F20               MOV     R18, R16
+   \   0000000E   E010               LDI     R17, 0
+   \   00000010   E608               LDI     R16, 104
+   \   00000012   ....               RCALL   IICWrite
+    163              IICWrite(DS1307_ADR, DS1307_MIN_ADR, DEC2BCD(min));
+   \   00000014   2F09               MOV     R16, R25
+   \   00000016   ....               RCALL   DEC2BCD
+   \   00000018   2F20               MOV     R18, R16
+   \   0000001A   E011               LDI     R17, 1
+   \   0000001C   E608               LDI     R16, 104
+   \   0000001E   ....               RCALL   IICWrite
+    164              IICWrite(DS1307_ADR, DS1307_HOUR_ADR, DEC2BCD(hour));    
+   \   00000020   2F08               MOV     R16, R24
+   \   00000022   ....               RCALL   DEC2BCD
+   \   00000024   2F20               MOV     R18, R16
+   \   00000026   E012               LDI     R17, 2
+   \   00000028   E608               LDI     R16, 104
+   \   0000002A   ....               RCALL   IICWrite
+    165          }
+   \   0000002C   9189               LD      R24, Y+
+   \   0000002E   9199               LD      R25, Y+
+   \   00000030   9508               RET
+    166          
+    167          
+    168          /*******************************************************************************
+    169          * Function Name  : DS1307SetDate
+    170          * Description    : Write time to DS1307
+    171          * Input		 : Date, month, year
+    172          *******************************************************************************/
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    173          void DS1307SetDate(unsigned char date,unsigned char month,unsigned char year)
+   \                     DS1307SetDate:
+    174          {    
+   \   00000000   939A               ST      -Y, R25
+   \   00000002   938A               ST      -Y, R24
+   \   00000004   2F81               MOV     R24, R17
+   \   00000006   2F92               MOV     R25, R18
+    175              IICWrite(DS1307_ADR, DS1307_DATE_ADR, DEC2BCD(date));
+   \   00000008   ....               RCALL   DEC2BCD
+   \   0000000A   2F20               MOV     R18, R16
+   \   0000000C   E014               LDI     R17, 4
+   \   0000000E   E608               LDI     R16, 104
+   \   00000010   ....               RCALL   IICWrite
+    176              IICWrite(DS1307_ADR, DS1307_MONTH_ADR, DEC2BCD(month));
+   \   00000012   2F08               MOV     R16, R24
+   \   00000014   ....               RCALL   DEC2BCD
+   \   00000016   2F20               MOV     R18, R16
+   \   00000018   E015               LDI     R17, 5
+   \   0000001A   E608               LDI     R16, 104
+   \   0000001C   ....               RCALL   IICWrite
+    177              IICWrite(DS1307_ADR, DS1307_YEAR_ADR, DEC2BCD(year));  
+   \   0000001E   2F09               MOV     R16, R25
+   \   00000020   ....               RCALL   DEC2BCD
+   \   00000022   2F20               MOV     R18, R16
+   \   00000024   E016               LDI     R17, 6
+   \   00000026   E608               LDI     R16, 104
+   \   00000028   ....               RCALL   IICWrite
+    178          }
+   \   0000002A   9189               LD      R24, Y+
+   \   0000002C   9199               LD      R25, Y+
+   \   0000002E   9508               RET
+
+   Maximum stack usage in bytes:
+
+     Function             CSTACK RSTACK
+     --------             ------ ------
+     BCD2DEC                  0      2
+     DEC2BCD                  2      4
+     DS1307GetDate            6      2
+       -> IICWriteInitAdr     6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+     DS1307GetTime            6      2
+       -> IICWriteInitAdr     6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+       -> IICRead             6      2
+       -> BCD2DEC             6      2
+     DS1307Init               0      2
+       -> IICWrite            0      2
+     DS1307SetDate            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+     DS1307SetTime            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+       -> DEC2BCD             2      2
+       -> IICWrite            2      2
+     IICRead                  0      2
+     IICWrite                 0      2
+     IICWriteInitAdr          0      2
+
+
+   Segment part sizes:
+
+     Function/Label  Bytes
+     --------------  -----
+     _A_TWCR            1
+     _A_TWDR            1
+     _A_TWSR            1
+     _A_TWBR            1
+     DEC2BCD           38
+     BCD2DEC           18
+     IICWrite          62
+     IICWriteInitAdr   48
+     IICRead           50
+     DS1307Init        18
+     DS1307GetTime     50
+     DS1307GetDate     52
+     DS1307SetTime     50
+     DS1307SetDate     48
+
+ 
+   4 bytes in segment ABSOLUTE
+ 434 bytes in segment CODE
+ 
+ 434 bytes of CODE memory
+   0 bytes of DATA memory (+ 4 bytes shared)
+
+Errors: none
+Warnings: none

@@ -1,0 +1,451 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V6.10.1.50424 for Atmel AVR        16/Nov/2014  12:22:26 #
+# Copyright 1996-2011 IAR Systems AB.                                         #
+#                                                                             #
+#    Source file  =  H:\WORKSPACE\NixieClock2\i2c2.c                          #
+#    Command line =  H:\WORKSPACE\NixieClock2\i2c2.c --cpu=m16 -ms -o         #
+#                    H:\WORKSPACE\NixieClock2\Debug\Obj\ -lC                  #
+#                    H:\WORKSPACE\NixieClock2\Debug\List\                     #
+#                    --initializers_in_flash --no_cse --no_inline             #
+#                    --no_code_motion --no_cross_call --no_clustering         #
+#                    --no_tbaa --debug -DENABLE_BIT_DEFINITIONS -e            #
+#                    --eeprom_size 512 --clib -Ol                             #
+#    List file    =  H:\WORKSPACE\NixieClock2\Debug\List\i2c2.lst             #
+#    Object file  =  H:\WORKSPACE\NixieClock2\Debug\Obj\i2c2.r90              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+H:\WORKSPACE\NixieClock2\i2c2.c
+      1          #include "i2c2.h"
+      2          
+      3          //I2C driver
+      4          //===========================================================
+      5          //I2C setting
+      6          #define SDA_LN            PC1        //линия SDA
+      7          #define SCL_LN            PC0        //линия SCL
+      8          #define I2C_PIN           PINC       //порт входа
+      9          #define I2C_DDR           DDRC       //порт направления
+     10          #define I2C_PORT          PORTC      //порт выхода
+     11          
+     12          #define I2C_T             0.00005    //период импульса
+     13          #define F_CLK             20000000
+     14          #include <intrinsics.h>
+     15          #include <ioavr.h>
+
+   \                                 In  segment ABSOLUTE, at 0x35
+   \   union <unnamed> volatile __io _A_PORTC
+   \                     _A_PORTC:
+   \   00000000                      DS8 1
+
+   \                                 In  segment ABSOLUTE, at 0x34
+   \   union <unnamed> volatile __io _A_DDRC
+   \                     _A_DDRC:
+   \   00000000                      DS8 1
+
+   \                                 In  segment ABSOLUTE, at 0x33
+   \   union <unnamed> volatile __io _A_PINC
+   \                     _A_PINC:
+   \   00000000                      DS8 1
+     16          
+
+   \                                 In  segment NEAR_Z, align 1, keep-with-next
+   \   00000000                      REQUIRE `?<Segment init: NEAR_Z>`
+     17          unsigned char i2c_error;
+   \                     i2c_error:
+   \   00000000                      DS8 1
+     18          
+     19          // Вспомогательные функции
+     20          //============================================================================
+     21          
+     22          //Устанавливает линию SDA на вход
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     23          void i2c_SdaOut(void)
+   \                     i2c_SdaOut:
+     24          {
+     25              I2C_DDR|=(1<<SDA_LN);
+   \   00000000   9AA1               SBI     0x14, 0x01
+     26              __delay_cycles(I2C_T*F_CLK);
+   \   00000002   EF0A               LDI     R16, 250
+   \   00000004   0000               NOP
+   \   00000006   950A               DEC     R16
+   \   00000008   F7E9               BRNE    $-4
+     27          }
+   \   0000000A   9508               RET
+   \   0000000C                      REQUIRE _A_DDRC
+     28          //Устанавливает линию SDA на выход
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     29          void i2c_SdaIn(void)
+   \                     i2c_SdaIn:
+     30          {
+     31              I2C_DDR&=~(1<<SDA_LN);
+   \   00000000   98A1               CBI     0x14, 0x01
+     32              __delay_cycles(I2C_T*F_CLK);
+   \   00000002   EF0A               LDI     R16, 250
+   \   00000004   0000               NOP
+   \   00000006   950A               DEC     R16
+   \   00000008   F7E9               BRNE    $-4
+     33          }
+   \   0000000A   9508               RET
+   \   0000000C                      REQUIRE _A_DDRC
+     34          
+     35          //Устанавливает уровень на линии SCL
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     36          void i2c_SclSetH(void)
+   \                     i2c_SclSetH:
+     37          {
+     38              I2C_DDR&=~(1<<SCL_LN);
+   \   00000000   98A0               CBI     0x14, 0x00
+     39              I2C_PORT&=~(1<<SCL_LN);
+   \   00000002   98A8               CBI     0x15, 0x00
+     40              __delay_cycles(I2C_T*F_CLK);
+   \   00000004   EF0A               LDI     R16, 250
+   \   00000006   0000               NOP
+   \   00000008   950A               DEC     R16
+   \   0000000A   F7E9               BRNE    $-4
+     41          }
+   \   0000000C   9508               RET
+   \   0000000E                      REQUIRE _A_DDRC
+   \   0000000E                      REQUIRE _A_PORTC
+     42          
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     43          void i2c_SclSetL(void)
+   \                     i2c_SclSetL:
+     44          {
+     45              I2C_DDR|=(1<<SCL_LN);
+   \   00000000   9AA0               SBI     0x14, 0x00
+     46              I2C_PORT&=~(1<<SCL_LN);
+   \   00000002   98A8               CBI     0x15, 0x00
+     47              __delay_cycles(I2C_T*F_CLK);
+   \   00000004   EF0A               LDI     R16, 250
+   \   00000006   0000               NOP
+   \   00000008   950A               DEC     R16
+   \   0000000A   F7E9               BRNE    $-4
+     48          }
+   \   0000000C   9508               RET
+   \   0000000E                      REQUIRE _A_DDRC
+   \   0000000E                      REQUIRE _A_PORTC
+     49          
+     50          //Устанавливает уровень на линии SDA
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     51          void i2c_SdaSetH(void)
+   \                     i2c_SdaSetH:
+     52          {
+     53              I2C_DDR&=~(1<<SDA_LN);
+   \   00000000   98A1               CBI     0x14, 0x01
+     54              I2C_PORT&=~(1<<SDA_LN);
+   \   00000002   98A9               CBI     0x15, 0x01
+     55              __delay_cycles(I2C_T*F_CLK);
+   \   00000004   EF0A               LDI     R16, 250
+   \   00000006   0000               NOP
+   \   00000008   950A               DEC     R16
+   \   0000000A   F7E9               BRNE    $-4
+     56          }
+   \   0000000C   9508               RET
+   \   0000000E                      REQUIRE _A_DDRC
+   \   0000000E                      REQUIRE _A_PORTC
+     57          
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     58          void i2c_SdaSetL(void)
+   \                     i2c_SdaSetL:
+     59          {
+     60              I2C_DDR|=(1<<SDA_LN);
+   \   00000000   9AA1               SBI     0x14, 0x01
+     61              I2C_PORT&=~(1<<SDA_LN);
+   \   00000002   98A9               CBI     0x15, 0x01
+     62              __delay_cycles(I2C_T*F_CLK);
+   \   00000004   EF0A               LDI     R16, 250
+   \   00000006   0000               NOP
+   \   00000008   950A               DEC     R16
+   \   0000000A   F7E9               BRNE    $-4
+     63          }
+   \   0000000C   9508               RET
+   \   0000000E                      REQUIRE _A_DDRC
+   \   0000000E                      REQUIRE _A_PORTC
+     64          
+     65          //Возвращает уровень линии SDA
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     66          unsigned char i2c_InSda(void)
+   \                     i2c_InSda:
+     67          {
+     68            if(I2C_PIN&(1<<SDA_LN))
+   \   00000000   9B99               SBIS    0x13, 0x01
+   \   00000002   C002               RJMP    ??i2c_InSda_0
+     69              return 1;
+   \   00000004   E001               LDI     R16, 1
+   \   00000006   9508               RET
+     70            else
+     71              return 0;
+   \                     ??i2c_InSda_0:
+   \   00000008   E000               LDI     R16, 0
+   \   0000000A   9508               RET
+   \   0000000C                      REQUIRE _A_PINC
+     72          }
+     73          //=======================================================================
+     74          //Основные фунции I2C
+     75          
+     76          //Инициализация программной шины I2C
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     77          void i2c_Init(void)
+   \                     i2c_Init:
+     78          {
+     79            I2C_DDR&=~(1<<SDA_LN);      //изначально линии SDA
+   \   00000000   98A1               CBI     0x14, 0x01
+     80            I2C_DDR&=~(1<<SCL_LN);      //и SCL в высокоимпедансном состоянии
+   \   00000002   98A0               CBI     0x14, 0x00
+     81            I2C_PORT&=~(1<<SDA_LN);     //и на них поддерживается за счет внешних резисторов
+   \   00000004   98A9               CBI     0x15, 0x01
+     82            I2C_PORT&=~(1<<SCL_LN);     //высокий уровень
+   \   00000006   98A8               CBI     0x15, 0x00
+     83            i2c_error=0;                //изначально ошибок нет
+   \   00000008   E000               LDI     R16, 0
+   \   0000000A   9300....           STS     i2c_error, R16
+     84          }
+   \   0000000E   9508               RET
+   \   00000010                      REQUIRE _A_DDRC
+   \   00000010                      REQUIRE _A_PORTC
+     85          
+     86          //Формирует условие "СТАРТ"
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     87          void i2c_Start(void)
+   \                     i2c_Start:
+     88          {
+     89            i2c_SclSetH();
+   \   00000000   ....               RCALL   i2c_SclSetH
+     90            i2c_SdaSetL();
+   \   00000002   ....               RCALL   i2c_SdaSetL
+     91            i2c_SclSetL();
+   \   00000004   ....               RCALL   i2c_SclSetL
+     92          }
+   \   00000006   9508               RET
+     93          
+     94          //Формирует условие "СТОП"
+
+   \                                 In  segment CODE, align 2, keep-with-next
+     95          void i2c_Stop(void)
+   \                     i2c_Stop:
+     96          {
+     97            i2c_SdaSetL();
+   \   00000000   ....               RCALL   i2c_SdaSetL
+     98            i2c_SclSetH();
+   \   00000002   ....               RCALL   i2c_SclSetH
+     99            i2c_SdaSetH();
+   \   00000004   ....               RCALL   i2c_SdaSetH
+    100          }
+   \   00000006   9508               RET
+    101          
+    102          //Посылка байта i2c_tx
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    103          void i2c_Send(unsigned char byte)
+   \                     i2c_Send:
+    104          {
+   \   00000000   939A               ST      -Y, R25
+   \   00000002   938A               ST      -Y, R24
+   \   00000004   2F90               MOV     R25, R16
+    105            if(i2c_error)
+   \   00000006   9100....           LDS     R16, i2c_error
+   \   0000000A   2300               TST     R16
+   \   0000000C   F4A1               BRNE    ??i2c_Send_0
+    106              return;
+    107            for(unsigned char i=0;i<8;i++)
+   \   0000000E   E080               LDI     R24, 0
+   \   00000010   C005               RJMP    ??i2c_Send_1
+    108              {
+    109                if(byte&0x80)
+    110                  i2c_SdaSetH();
+    111                else
+    112                  i2c_SdaSetL();
+   \                     ??i2c_Send_2:
+   \   00000012   ....               RCALL   i2c_SdaSetL
+    113                i2c_SclSetH();
+   \                     ??i2c_Send_3:
+   \   00000014   ....               RCALL   i2c_SclSetH
+    114                i2c_SclSetL();
+   \   00000016   ....               RCALL   i2c_SclSetL
+    115                byte<<=1;
+   \   00000018   0F99               LSL     R25
+   \   0000001A   9583               INC     R24
+   \                     ??i2c_Send_1:
+   \   0000001C   3088               CPI     R24, 8
+   \   0000001E   F420               BRCC    ??i2c_Send_4
+   \   00000020   FB97               BST     R25, 7
+   \   00000022   F7BE               BRTC    ??i2c_Send_2
+   \   00000024   ....               RCALL   i2c_SdaSetH
+   \   00000026   CFF6               RJMP    ??i2c_Send_3
+    116              }
+    117            i2c_SdaIn();
+   \                     ??i2c_Send_4:
+   \   00000028   ....               RCALL   i2c_SdaIn
+    118            i2c_SclSetH();
+   \   0000002A   ....               RCALL   i2c_SclSetH
+    119            i2c_error=i2c_InSda();
+   \   0000002C   ....               RCALL   i2c_InSda
+   \   0000002E   9300....           STS     i2c_error, R16
+    120            i2c_SclSetL();
+   \   00000032   ....               RCALL   i2c_SclSetL
+    121            i2c_SdaOut();
+   \   00000034   ....               RCALL   i2c_SdaOut
+    122          }
+   \                     ??i2c_Send_0:
+   \   00000036   9189               LD      R24, Y+
+   \   00000038   9199               LD      R25, Y+
+   \   0000003A   9508               RET
+    123          
+    124          //Прием байта, если last_byte=0, то принимаем последний байт и подтверждение от мастера не нужно i2c_rx
+
+   \                                 In  segment CODE, align 2, keep-with-next
+    125          unsigned char i2c_Read(unsigned char last_byte)
+   \                     i2c_Read:
+    126          {
+   \   00000000   ........           CALL    ?PROLOGUE4_L09
+   \   00000004   2FA0               MOV     R26, R16
+    127            unsigned char data=0;
+   \   00000006   E0B0               LDI     R27, 0
+    128            unsigned char mask=0x80;
+   \   00000008   E890               LDI     R25, 128
+    129            if(i2c_error)
+   \   0000000A   9100....           LDS     R16, i2c_error
+   \   0000000E   2300               TST     R16
+   \   00000010   F011               BREQ    ??i2c_Read_0
+    130              return 0;
+   \   00000012   E000               LDI     R16, 0
+   \   00000014   C016               RJMP    ??i2c_Read_1
+    131            i2c_SdaIn();
+   \                     ??i2c_Read_0:
+   \   00000016   ....               RCALL   i2c_SdaIn
+    132            for(unsigned char i=0;i<8;i++)
+   \   00000018   E080               LDI     R24, 0
+   \   0000001A   C008               RJMP    ??i2c_Read_2
+    133              {
+    134                i2c_SclSetH();
+   \                     ??i2c_Read_3:
+   \   0000001C   ....               RCALL   i2c_SclSetH
+    135                if(i2c_InSda())
+   \   0000001E   ....               RCALL   i2c_InSda
+   \   00000020   2300               TST     R16
+   \   00000022   F009               BREQ    ??i2c_Read_4
+    136                  data=data+mask;
+   \   00000024   0FB9               ADD     R27, R25
+    137                mask>>=1;
+   \                     ??i2c_Read_4:
+   \   00000026   9596               LSR     R25
+    138                i2c_SclSetL();
+   \   00000028   ....               RCALL   i2c_SclSetL
+    139              }
+   \   0000002A   9583               INC     R24
+   \                     ??i2c_Read_2:
+   \   0000002C   3088               CPI     R24, 8
+   \   0000002E   F3B0               BRCS    ??i2c_Read_3
+    140            i2c_SdaOut();
+   \   00000030   ....               RCALL   i2c_SdaOut
+    141          
+    142            if(last_byte)
+   \   00000032   23AA               TST     R26
+   \   00000034   F011               BREQ    ??i2c_Read_5
+    143            {i2c_SdaSetL();}
+   \   00000036   ....               RCALL   i2c_SdaSetL
+   \   00000038   C001               RJMP    ??i2c_Read_6
+    144            else
+    145            {i2c_SdaSetH();}
+   \                     ??i2c_Read_5:
+   \   0000003A   ....               RCALL   i2c_SdaSetH
+    146          
+    147            i2c_SclSetH();
+   \                     ??i2c_Read_6:
+   \   0000003C   ....               RCALL   i2c_SclSetH
+    148            i2c_SclSetL();
+   \   0000003E   ....               RCALL   i2c_SclSetL
+    149            return data;
+   \   00000040   2F0B               MOV     R16, R27
+   \                     ??i2c_Read_1:
+   \   00000042   E0E4               LDI     R30, 4
+   \   00000044   ........           JMP     ?EPILOGUE_B4_L09
+    150          
+    151          }
+
+   Maximum stack usage in bytes:
+
+     Function         CSTACK RSTACK
+     --------         ------ ------
+     i2c_InSda            0      2
+     i2c_Init             0      2
+     i2c_Read             4      2
+       -> i2c_SdaIn       4      2
+       -> i2c_SclSetH     4      2
+       -> i2c_InSda       4      2
+       -> i2c_SclSetL     4      2
+       -> i2c_SdaOut      4      2
+       -> i2c_SdaSetL     4      2
+       -> i2c_SdaSetH     4      2
+       -> i2c_SclSetH     4      2
+       -> i2c_SclSetL     4      2
+     i2c_SclSetH          0      2
+     i2c_SclSetL          0      2
+     i2c_SdaIn            0      2
+     i2c_SdaOut           0      2
+     i2c_SdaSetH          0      2
+     i2c_SdaSetL          0      2
+     i2c_Send             2      2
+       -> i2c_SdaSetL     2      2
+       -> i2c_SclSetH     2      2
+       -> i2c_SclSetL     2      2
+       -> i2c_SdaSetH     2      2
+       -> i2c_SdaIn       2      2
+       -> i2c_SclSetH     2      2
+       -> i2c_InSda       2      2
+       -> i2c_SclSetL     2      2
+       -> i2c_SdaOut      2      2
+     i2c_Start            0      2
+       -> i2c_SclSetH     0      2
+       -> i2c_SdaSetL     0      2
+       -> i2c_SclSetL     0      2
+     i2c_Stop             0      2
+       -> i2c_SdaSetL     0      2
+       -> i2c_SclSetH     0      2
+       -> i2c_SdaSetH     0      2
+
+
+   Segment part sizes:
+
+     Function/Label Bytes
+     -------------- -----
+     _A_PORTC          1
+     _A_DDRC           1
+     _A_PINC           1
+     i2c_error         1
+     i2c_SdaOut       12
+     i2c_SdaIn        12
+     i2c_SclSetH      14
+     i2c_SclSetL      14
+     i2c_SdaSetH      14
+     i2c_SdaSetL      14
+     i2c_InSda        12
+     i2c_Init         16
+     i2c_Start         8
+     i2c_Stop          8
+     i2c_Send         60
+     i2c_Read         72
+      Others           6
+
+ 
+   3 bytes in segment ABSOLUTE
+ 256 bytes in segment CODE
+   6 bytes in segment INITTAB
+   1 byte  in segment NEAR_Z
+ 
+ 256 bytes of CODE memory (+ 6 bytes shared)
+   1 byte  of DATA memory (+ 3 bytes shared)
+
+Errors: none
+Warnings: none
