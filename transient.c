@@ -59,16 +59,16 @@ void Soft(uint8_t Num1, uint8_t Num2, uint8_t Num3)
 * Description    : Digits sprint effect
 * Input          : Three numbers to display
 *******************************************************************************/
-void Sprint(uint8_t D1, uint8_t D2, uint8_t D3)  
+void Sprint(uint8_t Num1, uint8_t Num2, uint8_t Num3)  
 {
     ZeroBL();
     
-    targetOut[0] = D1 / 10;    
-    targetOut[1] = D1 % 10;
-    targetOut[2] = D2 / 10;    
-    targetOut[3] = D2 % 10;
-    targetOut[4] = D3 / 10;    
-    targetOut[5] = D3 % 10;
+    targetOut[0] = Num1 / 10;    
+    targetOut[1] = Num1 % 10;
+    targetOut[2] = Num2 / 10;    
+    targetOut[3] = Num2 % 10;
+    targetOut[4] = Num3 / 10;    
+    targetOut[5] = Num3 % 10;
 
     for(uint8_t i=0; i<6; i++) 
     {
@@ -143,8 +143,6 @@ void ShiftLeft(uint16_t number)
 *******************************************************************************/  
 void ShiftRight() 
 {
-    uint8_t H, M, S;
-    
     ZeroBL();   
     
     if(!out[0]) 
@@ -177,6 +175,7 @@ void ShiftRight()
         }
     }
 
+    uint8_t H, M, S;
     DS1307GetTime(&H, &M, &S); 
 
     targetOut[0] = H / 10;   

@@ -1,23 +1,23 @@
 ###############################################################################
 #                                                                             #
-# IAR C/C++ Compiler V6.10.1.50424 for Atmel AVR        19/Nov/2014  09:16:08 #
+# IAR C/C++ Compiler V6.10.1.50424 for Atmel AVR        19/Nov/2014  18:23:37 #
 # Copyright 1996-2011 IAR Systems AB.                                         #
 #                                                                             #
-#    Source file  =  H:\WORKSPACE\NixieClock2\transient.c                     #
-#    Command line =  H:\WORKSPACE\NixieClock2\transient.c --cpu=m16 -ms -o    #
-#                    H:\WORKSPACE\NixieClock2\Debug\Obj\ -lC                  #
-#                    H:\WORKSPACE\NixieClock2\Debug\List\                     #
+#    Source file  =  H:\WORKSPACE\IAR\NixieClock2\transient.c                 #
+#    Command line =  H:\WORKSPACE\IAR\NixieClock2\transient.c --cpu=m16 -ms   #
+#                    -o H:\WORKSPACE\IAR\NixieClock2\Debug\Obj\ -lC           #
+#                    H:\WORKSPACE\IAR\NixieClock2\Debug\List\                 #
 #                    --initializers_in_flash --no_cse --no_inline             #
 #                    --no_code_motion --no_cross_call --no_clustering         #
 #                    --no_tbaa --debug -DENABLE_BIT_DEFINITIONS -e            #
 #                    --eeprom_size 512 --clib -Ol                             #
-#    List file    =  H:\WORKSPACE\NixieClock2\Debug\List\transient.lst        #
-#    Object file  =  H:\WORKSPACE\NixieClock2\Debug\Obj\transient.r90         #
+#    List file    =  H:\WORKSPACE\IAR\NixieClock2\Debug\List\transient.lst    #
+#    Object file  =  H:\WORKSPACE\IAR\NixieClock2\Debug\Obj\transient.r90     #
 #                                                                             #
 #                                                                             #
 ###############################################################################
 
-H:\WORKSPACE\NixieClock2\transient.c
+H:\WORKSPACE\IAR\NixieClock2\transient.c
       1          /* Includes ------------------------------------------------------------------*/
       2          #include "all.h"
       3          #include "ds1307.h"
@@ -174,7 +174,7 @@ H:\WORKSPACE\NixieClock2\transient.c
      61          *******************************************************************************/
 
    \                                 In  segment CODE, align 2, keep-with-next
-     62          void Sprint(uint8_t D1, uint8_t D2, uint8_t D3)  
+     62          void Sprint(uint8_t Num1, uint8_t Num2, uint8_t Num3)  
    \                     Sprint:
      63          {
    \   00000000   ........           CALL    ?PROLOGUE3_L09
@@ -185,32 +185,32 @@ H:\WORKSPACE\NixieClock2\transient.c
      64              ZeroBL();
    \   0000000C   ........           CALL    ZeroBL
      65              
-     66              targetOut[0] = D1 / 10;    
+     66              targetOut[0] = Num1 / 10;    
    \   00000010   E04A               LDI     R20, 10
    \   00000012   2F0A               MOV     R16, R26
    \   00000014   ........           CALL    ?UC_DIVMOD_L01
    \   00000018   9300....           STS     targetOut, R16
-     67              targetOut[1] = D1 % 10;
+     67              targetOut[1] = Num1 % 10;
    \   0000001C   E04A               LDI     R20, 10
    \   0000001E   2F0A               MOV     R16, R26
    \   00000020   ........           CALL    ?UC_DIVMOD_L01
    \   00000024   9340....           STS     (targetOut + 1), R20
-     68              targetOut[2] = D2 / 10;    
+     68              targetOut[2] = Num2 / 10;    
    \   00000028   E04A               LDI     R20, 10
    \   0000002A   2F08               MOV     R16, R24
    \   0000002C   ........           CALL    ?UC_DIVMOD_L01
    \   00000030   9300....           STS     (targetOut + 2), R16
-     69              targetOut[3] = D2 % 10;
+     69              targetOut[3] = Num2 % 10;
    \   00000034   E04A               LDI     R20, 10
    \   00000036   2F08               MOV     R16, R24
    \   00000038   ........           CALL    ?UC_DIVMOD_L01
    \   0000003C   9340....           STS     (targetOut + 3), R20
-     70              targetOut[4] = D3 / 10;    
+     70              targetOut[4] = Num3 / 10;    
    \   00000040   E04A               LDI     R20, 10
    \   00000042   2F09               MOV     R16, R25
    \   00000044   ........           CALL    ?UC_DIVMOD_L01
    \   00000048   9300....           STS     (targetOut + 4), R16
-     71              targetOut[5] = D3 % 10;
+     71              targetOut[5] = Num3 % 10;
    \   0000004C   E04A               LDI     R20, 10
    \   0000004E   2F09               MOV     R16, R25
    \   00000050   ........           CALL    ?UC_DIVMOD_L01
@@ -571,48 +571,46 @@ H:\WORKSPACE\NixieClock2\transient.c
    \                     ShiftRight:
     145          {
    \   00000000   9723               SBIW    R29:R28, 3
-    146              uint8_t H, M, S;
-    147              
-    148              ZeroBL();   
+    146              ZeroBL();   
    \   00000002   ........           CALL    ZeroBL
-    149              
-    150              if(!out[0]) 
+    147              
+    148              if(!out[0]) 
    \   00000006   9100....           LDS     R16, `out`
    \   0000000A   2300               TST     R16
    \   0000000C   F549               BRNE    ??ShiftRight_0
-    151              {
-    152                  //positive
-    153                  for(uint8_t i = 0; i <= 5; i++) 
+    149              {
+    150                  //positive
+    151                  for(uint8_t i = 0; i <= 5; i++) 
    \   0000000E   E000               LDI     R16, 0
    \                     ??ShiftRight_1:
    \   00000010   3006               CPI     R16, 6
    \   00000012   F008               BRCS    $+2+2
    \   00000014   C049               RJMP    ??ShiftRight_2
-    154                  { 
-    155                      out[5] = out[4];    
+    152                  { 
+    153                      out[5] = out[4];    
    \   00000016   9110....           LDS     R17, (`out` + 4)
    \   0000001A   9310....           STS     (`out` + 5), R17
-    156                      out[4] = out[3];
+    154                      out[4] = out[3];
    \   0000001E   9110....           LDS     R17, (`out` + 3)
    \   00000022   9310....           STS     (`out` + 4), R17
-    157                      out[3] = out[2];    
+    155                      out[3] = out[2];    
    \   00000026   9110....           LDS     R17, (`out` + 2)
    \   0000002A   9310....           STS     (`out` + 3), R17
-    158                      out[2] = out[1];
+    156                      out[2] = out[1];
    \   0000002E   9110....           LDS     R17, (`out` + 1)
    \   00000032   9310....           STS     (`out` + 2), R17
-    159                      out[1] = out[0];    
+    157                      out[1] = out[0];    
    \   00000036   9110....           LDS     R17, `out`
    \   0000003A   9310....           STS     (`out` + 1), R17
-    160                      out[i] = BLANK;
+    158                      out[i] = BLANK;
    \   0000003E   E02A               LDI     R18, 10
    \   00000040   E010               LDI     R17, 0
    \   00000042   01F8               MOVW    R31:R30, R17:R16
    \   00000044   ....               SUBI    R30, LOW((-(`out`) & 0xFFFF))
    \   00000046   ....               SBCI    R31, (-(`out`) & 0xFFFF) >> 8
    \   00000048   8320               ST      Z, R18
-    161                      
-    162                      _delay_ms(50);
+    159                      
+    160                      _delay_ms(50);
    \   0000004A   E34F               LDI     R20, 63
    \   0000004C   E05D               LDI     R21, 13
    \   0000004E   E063               LDI     R22, 3
@@ -622,40 +620,40 @@ H:\WORKSPACE\NixieClock2\transient.c
    \   00000056   F7E1               BRNE    $-6
    \   00000058   C000               RJMP    $+2
    \   0000005A   0000               NOP
-    163                  }
+    161                  }
    \   0000005C   9503               INC     R16
    \   0000005E   CFD8               RJMP    ??ShiftRight_1
-    164              }
-    165              else
-    166              {
-    167                  //negative
-    168                  for(uint8_t i = 0; i <= 3; i++) 
+    162              }
+    163              else
+    164              {
+    165                  //negative
+    166                  for(uint8_t i = 0; i <= 3; i++) 
    \                     ??ShiftRight_0:
    \   00000060   E000               LDI     R16, 0
    \   00000062   C020               RJMP    ??ShiftRight_3
-    169                  {
-    170                      out[5] = out[4];    
+    167                  {
+    168                      out[5] = out[4];    
    \                     ??ShiftRight_4:
    \   00000064   9110....           LDS     R17, (`out` + 4)
    \   00000068   9310....           STS     (`out` + 5), R17
-    171                      out[4] = out[3];
+    169                      out[4] = out[3];
    \   0000006C   9110....           LDS     R17, (`out` + 3)
    \   00000070   9310....           STS     (`out` + 4), R17
-    172                      out[3] = out[2];    
+    170                      out[3] = out[2];    
    \   00000074   9110....           LDS     R17, (`out` + 2)
    \   00000078   9310....           STS     (`out` + 3), R17
-    173                      out[2] = out[1];
+    171                      out[2] = out[1];
    \   0000007C   9110....           LDS     R17, (`out` + 1)
    \   00000080   9310....           STS     (`out` + 2), R17
-    174                      out[i] = BLANK;
+    172                      out[i] = BLANK;
    \   00000084   E02A               LDI     R18, 10
    \   00000086   E010               LDI     R17, 0
    \   00000088   01F8               MOVW    R31:R30, R17:R16
    \   0000008A   ....               SUBI    R30, LOW((-(`out`) & 0xFFFF))
    \   0000008C   ....               SBCI    R31, (-(`out`) & 0xFFFF) >> 8
    \   0000008E   8320               ST      Z, R18
-    175                      
-    176                      _delay_ms(50);
+    173                      
+    174                      _delay_ms(50);
    \   00000090   E34F               LDI     R20, 63
    \   00000092   E05D               LDI     R21, 13
    \   00000094   E063               LDI     R22, 3
@@ -665,14 +663,15 @@ H:\WORKSPACE\NixieClock2\transient.c
    \   0000009C   F7E1               BRNE    $-6
    \   0000009E   C000               RJMP    $+2
    \   000000A0   0000               NOP
-    177                  }
+    175                  }
    \   000000A2   9503               INC     R16
    \                     ??ShiftRight_3:
    \   000000A4   3004               CPI     R16, 4
    \   000000A6   F2F0               BRCS    ??ShiftRight_4
-    178              }
-    179          
-    180              DS1307GetTime(&H, &M, &S); 
+    176              }
+    177          
+    178              uint8_t H, M, S;
+    179              DS1307GetTime(&H, &M, &S); 
    \                     ??ShiftRight_2:
    \   000000A8   01AE               MOVW    R21:R20, R29:R28
    \   000000AA   019E               MOVW    R19:R18, R29:R28
@@ -682,59 +681,59 @@ H:\WORKSPACE\NixieClock2\transient.c
    \   000000B2   5F0E               SUBI    R16, 254
    \   000000B4   4F1F               SBCI    R17, 255
    \   000000B6   ........           CALL    DS1307GetTime
-    181          
-    182              targetOut[0] = H / 10;   
+    180          
+    181              targetOut[0] = H / 10;   
    \   000000BA   E04A               LDI     R20, 10
    \   000000BC   810A               LDD     R16, Y+2
    \   000000BE   ........           CALL    ?UC_DIVMOD_L01
    \   000000C2   9300....           STS     targetOut, R16
-    183              targetOut[1] = H % 10;
+    182              targetOut[1] = H % 10;
    \   000000C6   E04A               LDI     R20, 10
    \   000000C8   810A               LDD     R16, Y+2
    \   000000CA   ........           CALL    ?UC_DIVMOD_L01
    \   000000CE   9340....           STS     (targetOut + 1), R20
-    184              targetOut[2] = M / 10;   
+    183              targetOut[2] = M / 10;   
    \   000000D2   E04A               LDI     R20, 10
    \   000000D4   8109               LDD     R16, Y+1
    \   000000D6   ........           CALL    ?UC_DIVMOD_L01
    \   000000DA   9300....           STS     (targetOut + 2), R16
-    185              targetOut[3] = M % 10;
+    184              targetOut[3] = M % 10;
    \   000000DE   E04A               LDI     R20, 10
    \   000000E0   8109               LDD     R16, Y+1
    \   000000E2   ........           CALL    ?UC_DIVMOD_L01
    \   000000E6   9340....           STS     (targetOut + 3), R20
-    186              targetOut[4] = S / 10;   
+    185              targetOut[4] = S / 10;   
    \   000000EA   E04A               LDI     R20, 10
    \   000000EC   8108               LD      R16, Y
    \   000000EE   ........           CALL    ?UC_DIVMOD_L01
    \   000000F2   9300....           STS     (targetOut + 4), R16
-    187              targetOut[5] = S % 10;
+    186              targetOut[5] = S % 10;
    \   000000F6   E04A               LDI     R20, 10
    \   000000F8   8108               LD      R16, Y
    \   000000FA   ........           CALL    ?UC_DIVMOD_L01
    \   000000FE   9340....           STS     (targetOut + 5), R20
-    188          
-    189              for(uint8_t i = 0; i <= 5; i++) 
+    187          
+    188              for(uint8_t i = 0; i <= 5; i++) 
    \   00000102   E020               LDI     R18, 0
    \   00000104   C029               RJMP    ??ShiftRight_5
-    190              { 
-    191                  out[5] = out[4];    
+    189              { 
+    190                  out[5] = out[4];    
    \                     ??ShiftRight_6:
    \   00000106   9100....           LDS     R16, (`out` + 4)
    \   0000010A   9300....           STS     (`out` + 5), R16
-    192                  out[4] = out[3];
+    191                  out[4] = out[3];
    \   0000010E   9100....           LDS     R16, (`out` + 3)
    \   00000112   9300....           STS     (`out` + 4), R16
-    193                  out[3] = out[2];    
+    192                  out[3] = out[2];    
    \   00000116   9100....           LDS     R16, (`out` + 2)
    \   0000011A   9300....           STS     (`out` + 3), R16
-    194                  out[2] = out[1];
+    193                  out[2] = out[1];
    \   0000011E   9100....           LDS     R16, (`out` + 1)
    \   00000122   9300....           STS     (`out` + 2), R16
-    195                  out[1] = out[0];    
+    194                  out[1] = out[0];    
    \   00000126   9100....           LDS     R16, `out`
    \   0000012A   9300....           STS     (`out` + 1), R16
-    196                  out[0] = targetOut[5-i];
+    195                  out[0] = targetOut[5-i];
    \   0000012E   2F02               MOV     R16, R18
    \   00000130   E010               LDI     R17, 0
    \   00000132   9511               NEG     R17
@@ -745,8 +744,8 @@ H:\WORKSPACE\NixieClock2\transient.c
    \   0000013C   ....               SBCI    R31, (-(targetOut) & 0xFFFF) >> 8
    \   0000013E   8105               LDD     R16, Z+5
    \   00000140   9300....           STS     `out`, R16
-    197                  
-    198                  _delay_ms(50);
+    196                  
+    197                  _delay_ms(50);
    \   00000144   E34F               LDI     R20, 63
    \   00000146   E05D               LDI     R21, 13
    \   00000148   E063               LDI     R22, 3
@@ -756,12 +755,12 @@ H:\WORKSPACE\NixieClock2\transient.c
    \   00000150   F7E1               BRNE    $-6
    \   00000152   C000               RJMP    $+2
    \   00000154   0000               NOP
-    199              }
+    198              }
    \   00000156   9523               INC     R18
    \                     ??ShiftRight_5:
    \   00000158   3026               CPI     R18, 6
    \   0000015A   F2A8               BRCS    ??ShiftRight_6
-    200          }
+    199          }
    \   0000015C   9623               ADIW    R29:R28, 3
    \   0000015E   9508               RET
 
